@@ -1,0 +1,8 @@
+
+*.prefab
+assets/index/assets
+assets/index/ai00.html
+*.exe
+assets/tokenizer
+assets/Config.toml
+assets/index/sherpa-ncnn-wasm-main.data

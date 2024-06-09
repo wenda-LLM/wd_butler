@@ -6,3 +6,4 @@ assets/index/ai00.html
 assets/tokenizer
 assets/Config.toml
 assets/index/sherpa-ncnn-wasm-main.data
+*.7z

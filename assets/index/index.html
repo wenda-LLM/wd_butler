@@ -593,12 +593,19 @@
       let set = meke_set(app.datas.map(s => s.name))
       let results = (await send_chooses(sys_prompt + `从 ${set.join('、')} 中匹配出现的内容：` + s + end_prompt + '出现的是:', set))
       let name
-      results.forEach(i => i.perplexity = i.perplexity * (results.length ** 0.5))
-      if (results[0].perplexity > 9 && results.find(i => i.choice == '都不是').perplexity < 20)
+      let min = Infinity
+      let max = 0
+      results.forEach(i => {
+        i.perplexity < min ? (min = i.perplexity) : 0
+        i.perplexity > max ? (max = i.perplexity) : 0
+
+      })
+      results.forEach(i => i.perplexity = 1 + (min - i.perplexity) / max)
+      if (results.find(i => i.choice == '都不是').perplexity > 0.7)
         name = '都不是'
       else
         name = results[0].choice
-      for (i = 0; i < 3 && i < results.length; i++) {
+        for (i = 0; i < results.length; i++) {
         current_session.sources.push({ title: results[i].choice + ':' + results[i].perplexity.toFixed(1), content: results[i].perplexity, color: results[i].choice == name ? 'green' : 'red' })
       }
       let content
@@ -611,12 +618,19 @@
         } else {
           set = meke_set(set)
           results = (await send_chooses(sys_prompt + `从${set.join('、')}中匹配出现的内容：` + s + end_prompt + "出现的是:", set))
-          results.forEach(i => i.perplexity = i.perplexity * (results.length ** 0.5))
-          if (results[0].perplexity > 9&& results.find(i => i.choice == '都不是').perplexity < 20)
+          let min = Infinity
+          let max = 0
+          results.forEach(i => {
+            i.perplexity < min ? (min = i.perplexity) : 0
+            i.perplexity > max ? (max = i.perplexity) : 0
+
+          })
+          results.forEach(i => i.perplexity = 1 + (min - i.perplexity) / max)
+          if (results.find(i => i.choice == '都不是').perplexity > 0.8)
             content = '都不是'
           else
             content = results[0].choice
-          for (i = 0; i < 3 && i < results.length; i++) {
+          for (i = 0; i < results.length; i++) {
             current_session.sources.push({ title: results[i].choice + ':' + results[i].perplexity.toFixed(1), content: results[i].perplexity, color: results[i].choice == content ? 'green' : 'brown' })
           }
         }

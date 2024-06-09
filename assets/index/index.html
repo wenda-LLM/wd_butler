@@ -632,8 +632,14 @@
           else
             current_session.content = `已执行：${name}${content}`
         }
-        else
-          current_session.content = `${name}的${content}是，${final_data}`
+        else {
+
+          if (name == content)
+            current_session.content = `${name}是，${final_data}`
+          else
+            current_session.content = `${name}的${content}是，${final_data}`
+        }
+        current_session.content = `${name}的${content}是，${final_data}`
       } else {
         if (app.stt_started) startSST()
         current_session.content = `未找到`

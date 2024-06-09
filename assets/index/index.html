@@ -593,12 +593,13 @@
       let set = meke_set(app.datas.map(s => s.name))
       let results = (await send_chooses(sys_prompt + `从 ${set.join('、')} 中匹配出现的内容：` + s + end_prompt + '出现的是:', set))
       let name
-      if (results[0].perplexity > 2.2 && results.find(i => i.choice == '都不是').perplexity < 2.6)
+      results.forEach(i => i.perplexity = i.perplexity * (results.length ** 0.5))
+      if (results[0].perplexity > 9 && results.find(i => i.choice == '都不是').perplexity < 20)
         name = '都不是'
       else
         name = results[0].choice
       for (i = 0; i < 3 && i < results.length; i++) {
-        current_session.sources.push({ title: results[i].choice, content: results[i].perplexity, color: results[i].choice == name ? 'green' : 'red' })
+        current_session.sources.push({ title: results[i].choice + ':' + results[i].perplexity.toFixed(1), content: results[i].perplexity, color: results[i].choice == name ? 'green' : 'red' })
       }
       let content
       if (name == '都不是') {
@@ -610,12 +611,13 @@
         } else {
           set = meke_set(set)
           results = (await send_chooses(sys_prompt + `从${set.join('、')}中匹配出现的内容：` + s + end_prompt + "出现的是:", set))
-          if (results[0].perplexity > 3)
+          results.forEach(i => i.perplexity = i.perplexity * (results.length ** 0.5))
+          if (results[0].perplexity > 9&& results.find(i => i.choice == '都不是').perplexity < 20)
             content = '都不是'
           else
             content = results[0].choice
           for (i = 0; i < 3 && i < results.length; i++) {
-            current_session.sources.push({ title: results[i].choice, content: results[i].perplexity, color: results[i].choice == content ? 'green' : 'brown' })
+            current_session.sources.push({ title: results[i].choice + ':' + results[i].perplexity.toFixed(1), content: results[i].perplexity, color: results[i].choice == content ? 'green' : 'brown' })
           }
         }
       }

@@ -568,7 +568,7 @@
     };
 
     meke_set = l => {
-      let set = new Set(l.concat('都不是'))
+      let set = new Set(l)//.concat('都不是'))
       return Array.from(set)
     }
 
@@ -591,15 +591,13 @@
       sys_prompt = `User: `
       let end_prompt = '\n\nAssistant: '
       let set = meke_set(app.datas.map(s => s.name))
-      let results = (await send_chooses(sys_prompt + `从 ${set.join('、')} 中匹配出现的内容：` + s + end_prompt + '出现的是:', set))
+      let results = (await send_chooses(sys_prompt + `从 ${set.join('、')} 中匹配出现的内容：` + s + end_prompt + '出现的是: ', set.concat('傻逼')))
       let name
-      let sum = 0
-      results.forEach(i => {
-        sum += i.perplexity
-
-      })
-      results.forEach(i => i.perplexity = i.perplexity / sum)
-      if (results[0].perplexity - results.find(i => i.choice == '都不是').perplexity > -0.05)
+      let base_line = results.find(i => i.choice == '傻逼')
+      base_line.choice = '都不是'
+      base_line = base_line.perplexity
+      results.forEach(i => i.perplexity = i.perplexity / base_line)
+      if (results[0].perplexity > 0.15)
         name = '都不是'
       else
         name = results[0].choice
@@ -615,14 +613,12 @@
           content = name
         } else {
           set = meke_set(set)
-          results = (await send_chooses(sys_prompt + `从${set.join('、')}中匹配出现的内容：` + s + end_prompt + "出现的是:", set))
-          let sum = 0
-          results.forEach(i => {
-            sum += i.perplexity
-
-          })
-          results.forEach(i => i.perplexity = i.perplexity / sum)
-          if (results[0].perplexity - results.find(i => i.choice == '都不是').perplexity >- 0.05)
+          results = (await send_chooses(sys_prompt + `从${set.join('、')}中匹配出现的内容：` + s + end_prompt + "出现的是: ", set.concat('傻逼')))
+          let base_line = results.find(i => i.choice == '傻逼')
+          base_line.choice = '都不是'
+          base_line = base_line.perplexity
+          results.forEach(i => i.perplexity = i.perplexity / base_line)
+          if (results[0].perplexity > 0.3)
             content = '都不是'
           else
             content = results[0].choice

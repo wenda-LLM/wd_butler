@@ -603,7 +603,7 @@
 
         set = meke_set(app.datas.filter(s => s.name == name).map(s => s.content))
         content = (await send_chooses(sys_prompt + `从 ${set.join('、')} 中匹配接近的关键词：` + s + end_prompt + "匹配的是:", set))
-        if (content[0].choice == '都不是' && content[1].perplexity-content[0].perplexity < 0.1)
+        if (content[0].choice == '都不是' && content[1].perplexity-content[0].perplexity < 0.01)
           content = content[1].choice
         else
           content = content[0].choice

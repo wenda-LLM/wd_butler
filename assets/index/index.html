@@ -592,7 +592,7 @@
       let end_prompt = '\n\nAssistant: '
       let set = meke_set(app.datas.map(s => s.name))
       let name = (await send_chooses(sys_prompt + `从 ${set.join('、')} 中匹配接近的关键词：` + s + end_prompt + '匹配的是:', set))
-      if (name[0].choice == '都不是' && name[1].perplexity-name[0].perplexity < 0.05)
+      if (name[1].choice == '都不是' && name[1].perplexity-name[0].perplexity < 0.25)
         name = name[1].choice
       else
         name = name[0].choice

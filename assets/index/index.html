@@ -485,7 +485,7 @@
           show_header: true,
           //主题色
           color: "purple",
-          datas: JSON.parse(localStorage["wenda_sjgj_data"] || `[{"name":"张三","content":"手机号","data":1233333333},{"name":"李四","content":"家庭住址","data":"啊啊啊啊啊"},{"name":"当前","content":"时间","data":"eval:formatDateTime(new Date(), 'HH时mm分')"},{"name":"当前","content":"日期","data":"eval:formatDateTime(new Date(), 'yyyy年MM月dd日')"},{"name":"打开","content":"百度","data":"eval:window.open('//baidu.com',\\"_blank\\")"}]`),
+          datas: JSON.parse(localStorage["wenda_sjgj_data"] || `[{"name":"张三","content":"手机号","data":1233333333},{"name":"李四","content":"家庭住址","data":"啊啊啊啊啊"},{"name":"当前时间","content":"当前时间","data":"eval:formatDateTime(new Date(), 'HH时mm分')"},{"name":"当前日期","content":"当前日期","data":"eval:formatDateTime(new Date(), 'yyyy年MM月dd日')"},{"name":"打开百度","content":"打开百度","data":"eval:window.open('//baidu.com',\\"_blank\\")"}]`),
           //显示对话框
           show_dialog: false,
           //对话框标题
@@ -576,13 +576,13 @@
     // 参数s为用户输入的内容，keyword为用户输入的关键词，show为是否显示用户输入的内容，sources为知识库的来源
     let last_cost = []
     send = async (s, keyword = "", show = true, sources = []) => {
-      //chat_names = { "user": "打工人", "assistant": "老板" }
+      //chat_results = { "user": "打工人", "assistant": "老板" }
       app.question = ''
       if (keyword == "") keyword = s;
       is_abord = false;
       app.loading = true;
 
-      let current_session = { role: "Assistant", content: "……", sources: sources };
+      current_session = { role: "Assistant", content: "……", sources: sources };
       if (show) {
         app.chat.push({ role: "user", content: s, keyword: keyword });
         app.chat.push(current_session);
@@ -591,22 +591,33 @@
       sys_prompt = `User: `
       let end_prompt = '\n\nAssistant: '
       let set = meke_set(app.datas.map(s => s.name))
-      let name = (await send_chooses(sys_prompt + `从 ${set.join('、')} 中匹配接近的关键词：` + s + end_prompt + '匹配的是:', set))
-      if (name[1].choice == '都不是' && name[1].perplexity-name[0].perplexity < 0.25)
-        name = name[1].choice
+      let results = (await send_chooses(sys_prompt + `从 ${set.join('、')} 中匹配出现的内容：` + s + end_prompt + '出现的是:', set))
+      let name
+      if (results[0].perplexity > 2.2 && results.find(i => i.choice == '都不是').perplexity < 2.6)
+        name = '都不是'
       else
-        name = name[0].choice
+        name = results[0].choice
+      for (i = 0; i < 3 && i < results.length; i++) {
+        current_session.sources.push({ title: results[i].choice, content: results[i].perplexity, color: results[i].choice == name ? 'green' : 'red' })
+      }
       let content
       if (name == '都不是') {
         content = '都不是'
       } else {
-
-        set = meke_set(app.datas.filter(s => s.name == name).map(s => s.content))
-        content = (await send_chooses(sys_prompt + `从 ${set.join('、')} 中匹配接近的关键词：` + s + end_prompt + "匹配的是:", set))
-        if (content[0].choice == '都不是' && content[1].perplexity-content[0].perplexity < 0.01)
-          content = content[1].choice
-        else
-          content = content[0].choice
+        set = app.datas.filter(s => s.name == name).map(s => s.content)
+        if (set.length == 1 && set[0] == name) {
+          content = name
+        } else {
+          set = meke_set(set)
+          results = (await send_chooses(sys_prompt + `从${set.join('、')}中匹配出现的内容：` + s + end_prompt + "出现的是:", set))
+          if (results[0].perplexity > 3)
+            content = '都不是'
+          else
+            content = results[0].choice
+          for (i = 0; i < 3 && i < results.length; i++) {
+            current_session.sources.push({ title: results[i].choice, content: results[i].perplexity, color: results[i].choice == content ? 'green' : 'brown' })
+          }
+        }
       }
 
       console.log(name, content)
@@ -615,15 +626,18 @@
         let final_data
         if (target.data.indexOf && target.data.indexOf('eval:') == 0) final_data = eval(target.data.replace('eval:', ''))
         else final_data = target.data
-        if (typeof final_data == 'object')
-          current_session.content = `已执行：${name}${content}`
+        if (typeof final_data == 'object') {
+          if (name == content)
+            current_session.content = `已执行：${name}`
+          else
+            current_session.content = `已执行：${name}${content}`
+        }
         else
           current_session.content = `${name}的${content}是，${final_data}`
-        current_session.sources = [{ title: name, content: content, color: 'success' }]
       } else {
         if (app.stt_started) startSST()
         current_session.content = `未找到`
-        current_session.sources = [{ title: name, content: content, color: 'red' }]
+        // current_session.sources = [{ title: name, content: content, color: 'red' }]
       }
       if (app.tts_on && target) {
         if (app.chat_tts_on)
@@ -716,7 +730,7 @@
           var reader = new FileReader();
           reader.onload = function (e) {
             let contents = e.target.result;
-            var workbook = XLSX.read(new Uint8Array(contents), {
+            workbook = XLSX.read(new Uint8Array(contents), {
               type: 'array'
             });
             app.datas = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]])

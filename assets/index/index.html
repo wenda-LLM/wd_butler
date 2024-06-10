@@ -80,6 +80,7 @@
 
     .float {
       position: absolute !important;
+      transition: all 0.5s;
     }
 
     .float button {
@@ -202,8 +203,7 @@
                     }}</span>
                 </v-avatar>
                 <br />
-                <v-expand-transition>
-                  <div v-if="hover" class="float">
+                  <div :style="hover?'':'opacity: 0;'" class="float">
                     <v-icon v-if="!loading" large text :color="color"
                       @click="delete_current_conversation(current_conversation)">
                       mdi-delete
@@ -216,7 +216,6 @@
                       mdi-pencil
                     </v-icon>
                   </div>
-                </v-expand-transition>
               </div>
             </v-hover>
 
@@ -597,7 +596,7 @@
       base_line.choice = '都不是'
       base_line = base_line.perplexity
       results.forEach(i => i.perplexity = i.perplexity / base_line)
-      if (results[0].perplexity > 0.15)
+      if (results[0].perplexity > 0.05)
         name = '都不是'
       else
         name = results[0].choice
@@ -618,7 +617,7 @@
           base_line.choice = '都不是'
           base_line = base_line.perplexity
           results.forEach(i => i.perplexity = i.perplexity / base_line)
-          if (results[0].perplexity > 0.3)
+          if (results[0].perplexity > 0.1)
             content = '都不是'
           else
             content = results[0].choice
